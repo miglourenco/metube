@@ -80,6 +80,23 @@ wheels = [
 ]
 
 [[package]]
+name = "aiohttp-session"
+version = "2.12.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "aiohttp" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c2/c4/d73a7f19b1bd3149ba5bccd22e3ab580c19e4d9fcb83114309e8385ab807/aiohttp_session-2.12.1.tar.gz", hash = "sha256:15e6e0288e9bcccd4b1d0c28aae9c20e19a252b12d0cb682223ca9c83180e899", size = 17161 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/13/81/a9ff9032bbe7632fce8812487efe32cee3c76bc0b3221561cd5b6954d876/aiohttp_session-2.12.1-py3-none-any.whl", hash = "sha256:654df46c3c9b73294312795f558c3bca4a85bfd3b01a8b744d984ae3958dce5f", size = 12255 },
+]
+
+[package.optional-dependencies]
+secure = [
+    { name = "cryptography" },
+]
+
+[[package]]
 name = "aiosignal"
 version = "1.4.0"
 source = { registry = "https://pypi.org/simple" }
@@ -280,6 +297,33 @@ wheels = [
 ]
 
 [[package]]
+name = "cryptography"
+version = "44.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cffi", marker = "platform_python_implementation != 'PyPy'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/91/4c/45dfa6829acffa344e3967d6006ee4ae8be57af746ae2eba1c431949b32c/cryptography-44.0.0.tar.gz", hash = "sha256:cd4e834f340b4293430701e772ec543b0fbe6c2dea510a5286fe0acabe153a02", size = 710657 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/55/09/8cc67f9b84730ad330b3b72cf867150571eb606f1c2e609934f2a0f1e587/cryptography-44.0.0-cp39-abi3-macosx_10_9_universal2.whl", hash = "sha256:660cb7312a08bc38be15b696462fa7cc7cd85c3ed9c576e81f4dc4d8b2b31591", size = 6542801 },
+    { url = "https://files.pythonhosted.org/packages/7e/5b/3759e30a103144e29632e7cb72aec28571d51acd86c2d710507d6ac572a2/cryptography-44.0.0-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:1923cb251c04be85eec9fda837f0bc5b1ab3af1c96e8e5c7d35056b1e495c518", size = 3937081 },
+    { url = "https://files.pythonhosted.org/packages/2f/54/1faf44b51819b88b9b7c858f2b4c2540405eb1b8a03a6f3de56eb8db9f7b/cryptography-44.0.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:404fdc66ee5f83a1388be54300ae978b2efd538018de18556dde92575e05defc", size = 4150150 },
+    { url = "https://files.pythonhosted.org/packages/77/9a/ccc11a8e0c787de63f6c6722a091ef38b66aa91e8bd66b3c3390cc8a3ea3/cryptography-44.0.0-cp39-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:c5eb858beed7835e5ad1faba59e865109f3e52b3783b9ac21e7e47dc5554e289", size = 3922015 },
+    { url = "https://files.pythonhosted.org/packages/1b/9c/0a26822d547af0ed126d72508f607133c6d30a3976e4c1b90da6e7615783/cryptography-44.0.0-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:f53c2c87e0fb4b0c00fa9571082a057e37690a8f12233306161c8f4b819571b1", size = 4165175 },
+    { url = "https://files.pythonhosted.org/packages/a2/cd/2f3c440913d4329ade49c146ff57652e3e1e5d7a9927e11035a1f332e9cf/cryptography-44.0.0-cp39-abi3-manylinux_2_34_aarch64.whl", hash = "sha256:9e6fc8a08e116fb7c7dd1f040074c9d7b51d74a8ea40d4df2fc7aa08b76b9571", size = 3923953 },
+    { url = "https://files.pythonhosted.org/packages/7f/df/8be88797f0a1cca6e255189a57bb49237402b1880d6e8721690c5603ac23/cryptography-44.0.0-cp39-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:d2436571c55a4f3c138d0d286c2aaf0a9a54aca1cd8001e2e1280bf7a8703a9d", size = 4070391 },
+    { url = "https://files.pythonhosted.org/packages/af/36/5ccc376f025a834e72b8e52e18746b927f34e4520487098e283a719c205e/cryptography-44.0.0-cp39-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:a01956ddfa0a6790d594f5b34fc1bfa6098aca434696a03cfdbe469b8ed79285", size = 4288055 },
+    { url = "https://files.pythonhosted.org/packages/1d/aa/330e5ae67a94ef96148a8a7c1b4c0782a25c2ae8e5c88892136a3ce8ab75/cryptography-44.0.0-cp39-abi3-win32.whl", hash = "sha256:eca27345e1214d1b9f9490d200f9db5a874479be914199194e746c893788d417", size = 2758672 },
+    { url = "https://files.pythonhosted.org/packages/98/41/742d8c510c86275c062353fe62b41993357f07a3d6605ce8f0daa86efaf2/cryptography-44.0.0-cp39-abi3-win_amd64.whl", hash = "sha256:708ee5f1b5b8581f7eb6b6b1a41b0e9c1a7ced021a10d0b9aefa44c7507e84c3", size = 3202071 },
+    { url = "https://files.pythonhosted.org/packages/65/28/89c1bb87bf47829e2bdcd8b3fa1f8bb7c1c2c1ded4bc6988a6f0d824c717/cryptography-44.0.0-pp310-pypy310_pp73-macosx_10_9_x86_64.whl", hash = "sha256:37d76e6863da3774cd9db5b409a9ecfd2c71c981c38788d3fcfaf177f447b731", size = 3338857 },
+    { url = "https://files.pythonhosted.org/packages/99/eb/194c1ce94232e76d3c824e2b7e0b25eb5c8fe7cff39a0c9d0862e9c6abfd/cryptography-44.0.0-pp310-pypy310_pp73-manylinux_2_28_aarch64.whl", hash = "sha256:f677e1268c4e23420c3acade68fac427fffcb8d19d7df95ed7ad17cdef8404f4", size = 3850615 },
+    { url = "https://files.pythonhosted.org/packages/4a/38/b4f49e47dedf3320773df0dc27d8f1a867916e39b628ed562d0f5188e2f7/cryptography-44.0.0-pp310-pypy310_pp73-manylinux_2_28_x86_64.whl", hash = "sha256:f5e7cb1e5e56ca0933b4873c0220a78b773b24d40d186b6738080b73d3d0a756", size = 4081622 },
+    { url = "https://files.pythonhosted.org/packages/d3/c1/c2eb8b9e4ee37623e26e63552c3fafd9dc6d30ffc6ea36d65e5c498f05d8/cryptography-44.0.0-pp310-pypy310_pp73-manylinux_2_34_aarch64.whl", hash = "sha256:581e7b33c0be48c57d25fce9a25927741769a7b67a9b0f550a87faad0883b903", size = 3856824 },
+    { url = "https://files.pythonhosted.org/packages/fc/25/bce6e6b0d5f9a79a5c90219601a5e77cc40e26adceb51f941571ab6e08af/cryptography-44.0.0-pp310-pypy310_pp73-manylinux_2_34_x86_64.whl", hash = "sha256:9b2c091a5eb894411ab152cf7f0a62df1fd23caee6e9bae01b04c2bac3cf730d", size = 4088543 },
+    { url = "https://files.pythonhosted.org/packages/92/72/46c1d16eb95c2d64cad776a577ac37b6f55c47e215dce67af56c8fa4e186/cryptography-44.0.0-pp310-pypy310_pp73-win_amd64.whl", hash = "sha256:c5a550dc7a3b50b116323e3d376241829fd326463e15c727e7ccf5d73f7f7e86", size = 3055097 },
+]
+
+[[package]]
 name = "curl-cffi"
 version = "0.13.0"
 source = { registry = "https://pypi.org/simple" }
@@ -424,6 +468,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "aiohttp" },
+    { name = "aiohttp-session", extra = ["secure"] },
     { name = "curl-cffi" },
     { name = "mutagen" },
     { name = "python-socketio" },
@@ -439,6 +484,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiohttp" },
+    { name = "aiohttp-session", extras = ["secure"] },
     { name = "curl-cffi" },
     { name = "mutagen" },
     { name = "python-socketio", specifier = ">=5.0,<6.0" },

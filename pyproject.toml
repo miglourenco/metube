@@ -5,6 +5,7 @@ description = "Web GUI for youtube-dl (using yt-dlp) with playlist support"
 requires-python = ">=3.13"
 dependencies = [
     "aiohttp",
+    "aiohttp-session[secure]",
     "python-socketio>=5.0,<6.0",
     "yt-dlp[default,curl-cffi]",
     "mutagen",

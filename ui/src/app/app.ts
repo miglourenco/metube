@@ -6,10 +6,11 @@ import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NgSelectModule } from '@ng-select/ng-select';  
-import { faTrashAlt, faCheckCircle, faTimesCircle, faRedoAlt, faSun, faMoon, faCheck, faCircleHalfStroke, faDownload, faExternalLinkAlt, faFileImport, faFileExport, faCopy, faClock, faTachometerAlt } from '@fortawesome/free-solid-svg-icons';
+import { faTrashAlt, faCheckCircle, faTimesCircle, faRedoAlt, faSun, faMoon, faCheck, faCircleHalfStroke, faDownload, faExternalLinkAlt, faFileImport, faFileExport, faCopy, faClock, faTachometerAlt, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 import { faGithub } from '@fortawesome/free-brands-svg-icons';
 import { CookieService } from 'ngx-cookie-service';
 import { DownloadsService } from './services/downloads.service';
+import { AuthService } from './services/auth.service';
 import { Themes } from './theme';
 import { Download, Status, Theme , Quality, Format, Formats, State } from './interfaces';
 import { EtaPipe, SpeedPipe, FileSizePipe } from './pipes';
@@ -35,6 +36,7 @@ import { MasterCheckboxComponent , SlaveCheckboxComponent} from './components/';
 })
 export class App implements AfterViewInit, OnInit {
   downloads = inject(DownloadsService);
+  authService = inject(AuthService);
   private cookieService = inject(CookieService);
   private http = inject(HttpClient);
 
@@ -96,6 +98,9 @@ export class App implements AfterViewInit, OnInit {
   faGithub = faGithub;
   faClock = faClock;
   faTachometerAlt = faTachometerAlt;
+  faSignOutAlt = faSignOutAlt;
+
+  authEnabled = false;
 
   constructor() {
     this.format = this.cookieService.get('metube_format') || 'any';
@@ -124,6 +129,7 @@ export class App implements AfterViewInit, OnInit {
     this.getYtdlOptionsUpdateTime();
     this.customDirs$ = this.getMatchingCustomDir();
     this.setTheme(this.activeTheme!);
+    this.checkAuthStatus();
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
       if (this.activeTheme && this.activeTheme.id === 'auto') {
@@ -546,11 +552,21 @@ export class App implements AfterViewInit, OnInit {
     this.queuedDownloads = Array.from(this.downloads.queue.values()).filter(d => d.status === 'pending').length;
     this.completedDownloads = Array.from(this.downloads.done.values()).filter(d => d.status === 'finished').length;
     this.failedDownloads = Array.from(this.downloads.done.values()).filter(d => d.status === 'error').length;
-    
+
     // Calculate total speed from downloading items
     const downloadingItems = Array.from(this.downloads.queue.values())
       .filter(d => d.status === 'downloading');
-    
+
     this.totalSpeed = downloadingItems.reduce((total, item) => total + (item.speed || 0), 0);
+  }
+
+  checkAuthStatus() {
+    this.authService.checkAuthStatus().subscribe(status => {
+      this.authEnabled = status.auth_enabled;
+    });
+  }
+
+  logout() {
+    this.authService.logout().subscribe();
   }
 }

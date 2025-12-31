@@ -4,6 +4,8 @@
 import os
 import sys
 import asyncio
+import secrets
+import hashlib
 from pathlib import Path
 from aiohttp import web
 from aiohttp.log import access_logger
@@ -15,6 +17,10 @@ import json
 import pathlib
 import re
 from watchfiles import DefaultFilter, Change, awatch
+from aiohttp_session import setup as setup_session, get_session
+from aiohttp_session.cookie_storage import EncryptedCookieStorage
+from cryptography.fernet import Fernet
+import base64
 
 from ytdl import DownloadQueueNotifier, DownloadQueue
 from yt_dlp.version import __version__ as yt_dlp_version
@@ -74,6 +80,9 @@ class Config:
         'MAX_CONCURRENT_DOWNLOADS': 3,
         'LOGLEVEL': 'INFO',
         'ENABLE_ACCESSLOG': 'false',
+        'AUTH_USERNAME': '',
+        'AUTH_PASSWORD': '',
+        'AUTH_SECRET_KEY': '',
     }
 
     _BOOLEAN = ('DOWNLOAD_DIRS_INDEXABLE', 'CUSTOM_DIRS', 'CREATE_CUSTOM_DIRS', 'DELETE_FILE_ON_TRASHCAN', 'DEFAULT_OPTION_PLAYLIST_STRICT_MODE', 'HTTPS', 'ENABLE_ACCESSLOG')
@@ -154,9 +163,92 @@ class ObjectSerializer(json.JSONEncoder):
 
 serializer = ObjectSerializer()
 app = web.Application()
+
+# Authentication helper functions
+def is_auth_enabled():
+    """Check if authentication is enabled (both username and password are set)"""
+    return bool(config.AUTH_USERNAME and config.AUTH_PASSWORD)
+
+def get_secret_key():
+    """Get or generate a secret key for session encryption"""
+    if config.AUTH_SECRET_KEY:
+        # Use provided key - hash it to get exactly 32 bytes for Fernet
+        key_bytes = hashlib.sha256(config.AUTH_SECRET_KEY.encode()).digest()
+        log.info("Using provided AUTH_SECRET_KEY for session encryption")
+    else:
+        # Generate a random key (will change on restart, invalidating sessions)
+        key_bytes = secrets.token_bytes(32)
+        log.warning("AUTH_SECRET_KEY not set. Sessions will be invalidated on restart.")
+    # Fernet requires a url-safe base64-encoded 32-byte key
+    # Must include padding '=' to be exactly 44 characters
+    fernet_key = base64.urlsafe_b64encode(key_bytes)
+    # Verify the key works with Fernet before returning
+    Fernet(fernet_key)  # This will raise if key is invalid
+    return fernet_key
+
+def verify_credentials(username: str, password: str) -> bool:
+    """Verify username and password against configured credentials"""
+    return (
+        secrets.compare_digest(username, config.AUTH_USERNAME) and
+        secrets.compare_digest(password, config.AUTH_PASSWORD)
+    )
+
+# Setup session middleware if auth is enabled
+if is_auth_enabled():
+    secret_key = get_secret_key()
+    log.info(f"Generated secret key type: {type(secret_key)}, length: {len(secret_key)}")
+    # Create Fernet instance directly and pass to EncryptedCookieStorage
+    fernet_instance = Fernet(secret_key)
+    setup_session(app, EncryptedCookieStorage(fernet_instance, cookie_name='metube_session'))
+    log.info("Authentication enabled")
+else:
+    log.info("Authentication disabled (AUTH_USERNAME or AUTH_PASSWORD not set)")
+
 sio = socketio.AsyncServer(cors_allowed_origins='*')
 sio.attach(app, socketio_path=config.URL_PREFIX + 'socket.io')
 routes = web.RouteTableDef()
+
+# Authentication middleware
+@web.middleware
+async def auth_middleware(request, handler):
+    """Middleware to check authentication for protected routes"""
+    if not is_auth_enabled():
+        return await handler(request)
+
+    # Public routes that don't require authentication
+    public_paths = [
+        config.URL_PREFIX + 'login',
+        config.URL_PREFIX + 'auth/status',
+    ]
+
+    # Static assets paths
+    static_extensions = ('.js', '.css', '.ico', '.png', '.jpg', '.svg', '.woff', '.woff2', '.ttf', '.map')
+
+    request_path = request.path
+
+    # Allow public paths
+    if request_path in public_paths:
+        return await handler(request)
+
+    # Allow static assets for login page
+    if request_path.endswith(static_extensions):
+        return await handler(request)
+
+    # Check session
+    session = await get_session(request)
+    if session.get('authenticated'):
+        return await handler(request)
+
+    # Not authenticated - redirect to login for HTML requests, return 401 for API
+    accept = request.headers.get('Accept', '')
+    if 'text/html' in accept and request.method == 'GET':
+        raise web.HTTPFound(config.URL_PREFIX + 'login')
+    else:
+        raise web.HTTPUnauthorized(text='{"error": "Authentication required"}', content_type='application/json')
+
+# Apply auth middleware only if auth is enabled
+if is_auth_enabled():
+    app.middlewares.append(auth_middleware)
 
 class Notifier(DownloadQueueNotifier):
     async def added(self, dl):
@@ -230,6 +322,67 @@ async def watch_files():
 
 if config.YTDL_OPTIONS_FILE:
     app.on_startup.append(lambda app: watch_files())
+
+# Authentication routes
+@routes.get(config.URL_PREFIX + 'auth/status')
+async def auth_status(request):
+    """Check if authentication is enabled and if user is authenticated"""
+    if not is_auth_enabled():
+        return web.json_response({'auth_enabled': False, 'authenticated': True})
+
+    session = await get_session(request)
+    authenticated = session.get('authenticated', False)
+    return web.json_response({
+        'auth_enabled': True,
+        'authenticated': authenticated
+    })
+
+@routes.post(config.URL_PREFIX + 'login')
+async def login_post(request):
+    """Handle login form submission"""
+    if not is_auth_enabled():
+        return web.json_response({'status': 'ok', 'message': 'Authentication not enabled'})
+
+    try:
+        post = await request.json()
+        username = post.get('username', '')
+        password = post.get('password', '')
+    except:
+        raise web.HTTPBadRequest(text='Invalid JSON')
+
+    if verify_credentials(username, password):
+        session = await get_session(request)
+        session['authenticated'] = True
+        session['username'] = username
+        log.info(f"User '{username}' logged in successfully")
+        return web.json_response({'status': 'ok'})
+    else:
+        log.warning(f"Failed login attempt for user '{username}'")
+        return web.json_response({'status': 'error', 'message': 'Invalid credentials'}, status=401)
+
+@routes.get(config.URL_PREFIX + 'login')
+async def login_page(request):
+    """Serve the login page"""
+    if not is_auth_enabled():
+        raise web.HTTPFound(config.URL_PREFIX)
+
+    session = await get_session(request)
+    if session.get('authenticated'):
+        raise web.HTTPFound(config.URL_PREFIX)
+
+    return web.FileResponse(os.path.join(config.BASE_DIR, 'ui/dist/metube/browser/login.html'))
+
+@routes.post(config.URL_PREFIX + 'logout')
+async def logout(request):
+    """Handle logout"""
+    if not is_auth_enabled():
+        return web.json_response({'status': 'ok'})
+
+    session = await get_session(request)
+    username = session.get('username', 'unknown')
+    session.invalidate()
+    log.info(f"User '{username}' logged out")
+    return web.json_response({'status': 'ok'})
 
 @routes.post(config.URL_PREFIX + 'add')
 async def add(request):

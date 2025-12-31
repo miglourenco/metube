@@ -80,8 +80,34 @@ Certain values can be set via environment variables, using the `-e` parameter on
 * __GID__: Group under which MeTube will run. Defaults to `1000`.
 * __UMASK__: Umask value used by MeTube. Defaults to `022`.
 * __DEFAULT_THEME__: Default theme to use for the UI, can be set to `light`, `dark`, or `auto`. Defaults to `auto`.
-* __LOGLEVEL__: Log level, can be set to `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`, or `NONE`. Defaults to `INFO`. 
+* __LOGLEVEL__: Log level, can be set to `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`, or `NONE`. Defaults to `INFO`.
 * __ENABLE_ACCESSLOG__: Whether to enable access log. Defaults to `false`.
+
+### 🔐 Authentication
+
+MeTube supports optional username/password authentication to protect access to the web interface. When enabled, users must log in before accessing any functionality.
+
+* __AUTH_USERNAME__: Username for authentication. Leave empty to disable authentication.
+* __AUTH_PASSWORD__: Password for authentication. Leave empty to disable authentication.
+* __AUTH_SECRET_KEY__: Secret key used to encrypt session cookies. If not set, a random key is generated on each startup (which invalidates existing sessions on restart). For persistent sessions across restarts, set this to a random string.
+
+Authentication is only enabled when both `AUTH_USERNAME` and `AUTH_PASSWORD` are set. Example docker-compose configuration:
+
+```yaml
+services:
+  metube:
+    image: ghcr.io/alexta69/metube
+    container_name: metube
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    volumes:
+      - /path/to/downloads:/downloads
+    environment:
+      - AUTH_USERNAME=admin
+      - AUTH_PASSWORD=your_secure_password
+      - AUTH_SECRET_KEY=your_random_secret_key
+```
 
 The project's Wiki contains examples of useful configurations contributed by users of MeTube:
 * [YTDL_OPTIONS Cookbook](https://github.com/alexta69/metube/wiki/YTDL_OPTIONS-Cookbook)

@@ -48,7 +48,7 @@
       </ul>
     </div>
     -->
-    <div class="navbar-nav ms-auto">
+    <div class="navbar-nav ms-auto d-flex flex-row align-items-center">
       <div class="nav-item dropdown">
         <button class="btn btn-link nav-link py-2 px-0 px-sm-2 dropdown-toggle d-flex align-items-center"
           id="theme-select"
@@ -63,7 +63,7 @@
         <ul class="dropdown-menu dropdown-menu-end position-absolute" aria-labelledby="theme-select">
           @for (theme of themes; track theme) {
             <li>
-              <button type="button" class="dropdown-item d-flex align-items-center" 
+              <button type="button" class="dropdown-item d-flex align-items-center"
               [class.active]="activeTheme === theme"
               (click)="themeChanged(theme)">
                 <span class="me-2 opacity-50">
@@ -79,6 +79,15 @@
           }
         </ul>
       </div>
+      @if (authEnabled) {
+        <button class="btn btn-link nav-link py-2 px-2 d-flex align-items-center"
+          type="button"
+          (click)="logout()"
+          title="Sign out"
+          ngbTooltip="Sign out">
+          <fa-icon [icon]="faSignOutAlt" />
+        </button>
+      }
     </div>
   </div>
 </nav>
